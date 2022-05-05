@@ -6,11 +6,14 @@ PROGS = $(C_PROGS) $(CXX_PROGS)
 
 # Choosing a compiler: We want LLVM (clang) so that we can use sanitizers
 # NOTE: if you are not running on myth, you may need to change this.
-CC = clang
-CXX = clang++
+CC = $(BREW_LLVM)/clang 
+CXX = $(BREW_LLVM)/clang++
+
+# enable sanitizers
+SAN = -fsanitize=address,leak,undefined
 
 # Flags for C compiler:
-CFLAGS = -g -O0 -Wall -Wextra -std=gnu99
+CFLAGS = -g -O0 -Wall -Wextra -std=gnu99 $(SAN)
 # Explanation of flags:
 # * -g: keep debug symbols in the binary (makes it easier to run in gdb)
 # * -O0: optimization level 0 (turn off most optimizations)
@@ -19,7 +22,7 @@ CFLAGS = -g -O0 -Wall -Wextra -std=gnu99
 # * -std=c11: Use the 1999 C standard with GNU extensions
 
 # Flags for C++ compiler:
-CXXFLAGS = -g -O0 -Wall -Wextra -std=c++17
+CXXFLAGS = -g -O0 -Wall -Wextra -std=c++17 $(SAN)
 # Explanation of flags:
 # * -g: keep debug symbols in the binary (makes it easier to run in gdb)
 # * -O0: optimization level 0 (turn off most optimizations)
@@ -30,14 +33,16 @@ CXXFLAGS = -g -O0 -Wall -Wextra -std=c++17
 # Flags for the linker. The compiler translates each .c or .cpp file into a
 # compiled "object" file (.o), and the linker takes all the .o files and
 # combines them into an executable.
-LDFLAGS =
+LDFLAGS = $(SAN)
 
 # This fancy Makefile code takes strings like "1-uppercase" and generates file
 # paths like "1-uppercase.c" and "1-uppercase.o"
-C_PROGS_SRC = $(patsubst %,%.c,$(C_PROGS))
-C_PROGS_OBJ = $(patsubst %.c,%.o,$(patsubst %.S,%.o,$(C_PROGS_SRC)))
-CXX_PROGS_SRC = $(patsubst %,%.cpp,$(CXX_PROGS))
-CXX_PROGS_OBJ = $(patsubst %.cpp,%.o,$(patsubst %.S,%.o,$(CXX_PROGS_SRC)))
+
+# The following four lines can be commented because of Makefile's implicit target rule
+# C_PROGS_SRC = $(patsubst %,%.c,$(C_PROGS))
+# C_PROGS_OBJ = $(patsubst %.c,%.o,$(patsubst %.S,%.o,$(C_PROGS_SRC)))
+# CXX_PROGS_SRC = $(patsubst %,%.cpp,$(CXX_PROGS))
+# CXX_PROGS_OBJ = $(patsubst %.cpp,%.o,$(patsubst %.S,%.o,$(CXX_PROGS_SRC)))
 
 default: $(PROGS)
 

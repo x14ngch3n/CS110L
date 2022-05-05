@@ -11,7 +11,7 @@ int fib(int n) {
         t2 = next;
     }
 
-    return t2;
+    return t1;
 }
 
 int main() {
