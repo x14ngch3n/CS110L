@@ -1,8 +1,9 @@
-Example 1:
+Example 1: error[E0506]: cannot assign to `s` because it is borrowed
+clone s
 ```
 fn main() {
     let mut s = String::from("hello");
-    let ref1 = &s;
+    let ref1 = &s.clone();
     let ref2 = &ref1;
     let ref3 = &ref2;
     s = String::from("goodbye");
@@ -12,23 +13,25 @@ fn main() {
 
 
 
-Example 2:
+Example 2: error[E0106]: missing lifetime specifier
+should transfer ownership back to caller
 ```
-fn drip_drop() -> &String {
+fn drip_drop() -> String {
     let s = String::from("hello world!");
-    return &s;
+    return &;
 }
 ```
 
 
 
-Example 3:
+Example 3: error[E0507]: cannot move out of index of `Vec<String>`
+borrow rather than move
 ```
 fn main() {
     let s1 = String::from("hello");
     let mut v = Vec::new();
     v.push(s1);
-    let s2: String = v[0];
+    let s2: &String = &v[0];
     println!("{}", s2);
 }
 ```
