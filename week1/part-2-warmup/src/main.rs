@@ -6,16 +6,19 @@ fn main() {
     println!("Hi! Try running \"cargo test\" to run tests.");
 }
 
+#[allow(unused)]
 fn add_n(v: Vec<i32>, n: i32) -> Vec<i32> {
     v.iter().map(|x| x + n).collect()
 }
 
+#[allow(unused)]
 fn add_n_inplace(v: &mut Vec<i32>, n: i32) {
     for num in v.iter_mut() {
         *num += n;
     }
 }
 
+#[allow(unused)]
 fn dedup(v: &mut Vec<i32>) {
     // collect v into hashset
     let mut hs = HashSet::<i32>::new();
