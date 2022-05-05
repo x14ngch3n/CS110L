@@ -7,15 +7,32 @@ fn main() {
 }
 
 fn add_n(v: Vec<i32>, n: i32) -> Vec<i32> {
-    unimplemented!()
+    v.iter().map(|x| x + n).collect()
 }
 
 fn add_n_inplace(v: &mut Vec<i32>, n: i32) {
-    unimplemented!()
+    for num in v.iter_mut() {
+        *num += n;
+    }
 }
 
 fn dedup(v: &mut Vec<i32>) {
-    unimplemented!()
+    // collect v into hashset
+    let mut hs = HashSet::<i32>::new();
+    // Don't directly convert hashset back to vector because it does not gurantee order.
+    // find if v's element in hs
+    let mut index = 0;
+    while index < v.len() {
+        match hs.contains(&v[index]) {
+            true => {
+                v.remove(index);
+            }
+            false => {
+                hs.insert(v[index]);
+                index += 1;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
