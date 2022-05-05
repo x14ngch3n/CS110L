@@ -65,8 +65,15 @@ fn main() {
         }
         // check if in secret word
         match secret_word.find(guess_char) {
-            Some(loc) => {
-                guess_word[loc] = guess_char;
+            Some(_) => {
+                for loc in 0..secret_word.len() {
+                    if secret_word.chars().collect::<Vec<char>>()[loc] == guess_char
+                        && guess_word[loc] == '-'
+                    {
+                        guess_word[loc] = guess_char;
+                        break;
+                    }
+                }
             }
             None => {
                 println!("Sorry, that letter is not in the word");
