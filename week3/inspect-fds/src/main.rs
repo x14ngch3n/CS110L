@@ -13,7 +13,6 @@ fn main() {
     let target = &args[1];
 
     // Milestone 1: Get the target Process using psutils::get_target()
-    #[allow(unused)]
     let process = match ps_utils::get_target(target).expect("There is problem calling ps or pgrep.")
     {
         Some(process) => {
@@ -28,6 +27,11 @@ fn main() {
             std::process::exit(1);
         }
     };
+    for process in ps_utils::get_child_processes(process.pid)
+        .expect("There is problem getting child process info.")
+    {
+        process.print();
+    }
 }
 
 #[cfg(test)]
