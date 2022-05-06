@@ -50,7 +50,6 @@ impl From<std::num::ParseIntError> for Error {
 ///
 /// Example line:
 /// "  578   577 emacs inode.c"
-#[allow(unused)] // TODO: delete this line for Milestone 1
 fn parse_ps_line(line: &str) -> Result<Process, Error> {
     // ps doesn't output a very nice machine-readable output, so we do some wonky things here to
     // deal with variable amounts of whitespace.
@@ -71,7 +70,6 @@ fn parse_ps_line(line: &str) -> Result<Process, Error> {
 /// This function takes a pid and returns a Process struct for the specified process, or None if
 /// the specified pid doesn't exist. An Error is only returned if ps cannot be executed or
 /// produces unexpected output format.
-#[allow(unused)] // TODO: delete this line for Milestone 1
 fn get_process(pid: usize) -> Result<Option<Process>, Error> {
     // Run ps to find the specified pid. We use the ? operator to return an Error if executing ps
     // fails, or if it returns non-utf-8 output. (The extra Error traits above are used to
@@ -96,7 +94,6 @@ fn get_process(pid: usize) -> Result<Option<Process>, Error> {
 /// This function takes a pid and returns a list of Process structs for processes that have the
 /// specified pid as their parent process. An Error is returned if ps cannot be executed or
 /// produces unexpected output format.
-#[allow(unused)] // TODO: delete this line for Milestone 5
 pub fn get_child_processes(pid: usize) -> Result<Vec<Process>, Error> {
     let ps_output = Command::new("ps")
         .args(&["--ppid", &pid.to_string(), "-o", "pid= ppid= command="])
