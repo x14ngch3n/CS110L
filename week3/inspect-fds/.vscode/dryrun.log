@@ -1,0 +1,7 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/cascades/cs110l-spr-2020-starter-code/week3/inspect-fds'
+cc  -o multi_pipe_test multi_pipe_test.c
+cc  -o nothing nothing.c
+cc  -o zombie_test zombie_test.c
+make: Leaving directory '/home/cascades/cs110l-spr-2020-starter-code/week3/inspect-fds'
+ 

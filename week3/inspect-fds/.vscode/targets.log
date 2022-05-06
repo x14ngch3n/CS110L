@@ -1,0 +1,277 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+ 
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Fri May  6 21:23:20 2022
+
+# Variables
+
+# environment
+LC_ALL = C
+# environment
+PULSE_SERVER = /mnt/wslg/PulseServer
+# environment
+WSLENV = VSCODE_WSL_EXT_LOCATION/up:VSCODE_SERVER_TAR/up
+# environment
+VSCODE_CWD = /mnt/c/Users/10152/AppData/Local/Programs/Microsoft VS Code
+# default
+MAKE_COMMAND := make
+# environment
+VSCODE_HANDLES_SIGPIPE = true
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /home/cascades/cs110l-spr-2020-starter-code/week3/inspect-fds
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+XDG_DATA_DIRS = /usr/local/share:/usr/share:/var/lib/snapd/desktop
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+VSCODE_LOG_STACK = false
+# automatic
+%F = $(notdir $%)
+# environment
+LANG = C
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
+# makefile
+MAKEFLAGS = pqrR
+# makefile
+CURDIR := /home/cascades/cs110l-spr-2020-starter-code/week3/inspect-fds
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+ 
+# makefile (from 'Makefile', line 1)
+SRCS = $(wildcard *.c)
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+MFLAGS = -pqrR
+# default
+.SHELLFLAGS := -c
+# environment
+WAYLAND_DISPLAY = wayland-0
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST := Makefile
+# automatic
+@F = $(notdir $@)
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+*F = $(notdir $*)
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{}}
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+ 
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 1
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /home/cascades/.vscode-server/bin/57fd6d0195bb9b9d1b49f6da5db789060795de47/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/VMware/VMware Workstation/bin/:/mnt/c/Program Files/Microsoft/jdk-17.0.0.35-hotspot/bin:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Users/10152/miniconda3:/mnt/c/Users/10152/miniconda3/Scripts:/mnt/c/Users/10152/miniconda3/Library/bin:/mnt/c/Program Files/Pandoc/:/mnt/c/Program Files/dotnet/:/mnt/c/Users/10152/AppData/Local/Android/Sdk/platform-tools:/mnt/c/Users/10152/AppData/Local/Android/Sdk/emulator:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/ProgramData/DockerDesktop/version-bin:/mnt/c/Program Files/nu/bin/:/mnt/c/Program Files/Git/cmd:/mnt/c/Users/10152/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/10152/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/10152/AppData/Local/Programs/Hyper/resources/bin:/mnt/c/Users/10152/.dotnet/tools:/mnt/c/Program Files/Bandizip/:/home/cascades/.cargo/bin:/snap/bin:/home/cascades/.local/bin:/home/cascades/.cargo/bin:/opt/ghidra:/opt/ghidra/support:/home/cascades/.cargo/bin:/home/cascades/.local/bin:/home/cascades/.cargo/bin:/opt/ghidra:/opt/ghidra/support
+# default
+MAKEFILES := 
+# automatic
+^F = $(notdir $^)
+ 
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?F = $(notdir $?)
+# environment
+NAME = LAPTOP-VH3GOMHL
+# environment
+VSCODE_SERVER_TAR = /mnt/c/Users/10152/AppData/Local/Temp/vscode-remote-wsl/57fd6d0195bb9b9d1b49f6da5db789060795de47/vscode-server-stable-linux-x64.tar.gz
+# environment
+HOSTTYPE = x86_64
+# automatic
++F = $(notdir $+)
+# environment
+WSL_INTEROP = /run/WSL/2714_interop
+# 'override' directive
+GNUMAKEFLAGS := 
+# environment
+LOGNAME = cascades
+# environment
+VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/10152/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.2
+# makefile
+.DEFAULT_GOAL := all
+# environment
+DISPLAY = :0
+# environment
+USER = cascades
+ 
+# default
+MAKE_VERSION := 4.3
+# environment
+VSCODE_EXTHOST_WILL_SEND_SOCKET = true
+# environment
+XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
+# environment
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-532beda4-f708-4472-802c-dc5d272ef599.sock
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/cascades
+ 
+# environment
+TERM = xterm-256color
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# default
+SUFFIXES := 
+# environment
+WSL_DISTRO_NAME = Ubuntu-22.04
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# makefile (from 'Makefile', line 2)
+PROGS = $(patsubst %.c,%,$(SRCS))
+# variable set hash-table stats:
+ 
+# Load=70/1024=7%, Rehash=0, Collisions=4/102=4%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 2080, inode 180390): 14 files, 5 impossibilities.
+
+# 14 files, 5 impossibilities in 1 directories.
+
+# Implicit Rules
+
+%: %.c
+#  recipe to execute (from 'Makefile', line 7):
+	$(CC) $(CFLAGS) -o $@ $<
+ 
+
+# 1 implicit rules, 0 (0.0%) terminal.
+# Files
+
+# Not a target:
+multi_pipe_test.c:
+#  Implicit rule search has been done.
+#  Last modified 2022-04-26 23:43:17.203422282
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-04-26 23:43:17.203422282
+#  File has been updated.
+#  Successfully updated.
+
+multi_pipe_test: multi_pipe_test.c
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: 'multi_pipe_test'
+#  Last modified 2022-05-06 17:56:43.501736616
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 7):
+	$(CC) $(CFLAGS) -o $@ $<
+ 
+
+clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 10):
+	rm -f $(PROGS)
+
+# Not a target:
+zombie_test.c:
+#  Implicit rule search has been done.
+#  Last modified 2022-04-26 23:43:17.203422282
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+
+all: multi_pipe_test nothing zombie_test
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Successfully updated.
+
+nothing: nothing.c
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: 'nothing'
+#  Last modified 2022-05-06 17:56:43.581736617
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 7):
+	$(CC) $(CFLAGS) -o $@ $<
+
+# Not a target:
+nothing.c:
+#  Implicit rule search has been done.
+#  Last modified 2022-04-26 23:43:17.203422282
+#  File has been updated.
+#  Successfully updated.
+
+zombie_test: zombie_test.c
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: 'zombie_test'
+ 
+#  Last modified 2022-05-06 17:56:43.671736618
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from 'Makefile', line 7):
+	$(CC) $(CFLAGS) -o $@ $<
+
+# files hash-table stats:
+# Load=11/1024=1%, Rehash=0, Collisions=0/44=0%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 27 / storage = 265 B / avg = 9 B
+# current buf: size = 8162 B / used = 265 B / count = 27 / avg = 9 B
+
+# strcache performance: lookups = 56 / hit rate = 51%
+# hash-table stats:
+# Load=27/8192=0%, Rehash=0, Collisions=0/56=0%
+# Finished Make data base on Fri May  6 21:23:20 2022
+
+ 
