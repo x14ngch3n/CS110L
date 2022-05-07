@@ -6,6 +6,7 @@ pub struct LinkedList<T> {
     size: usize,
 }
 
+#[derive(Clone)]
 struct Node<T> {
     value: T,
     next: Option<Box<Node<T>>>,
@@ -72,6 +73,19 @@ impl<T> Drop for LinkedList<T> {
         let mut current = self.head.take();
         while let Some(mut node) = current {
             current = node.next.take();
+        }
+    }
+}
+
+impl<T: Clone> Clone for LinkedList<T> {
+    fn clone(&self) -> Self {
+        let new_head = match &self.head {
+            Some(x) => Some(x.clone()),
+            None => None,
+        };
+        LinkedList {
+            head: new_head,
+            size: self.size,
         }
     }
 }
