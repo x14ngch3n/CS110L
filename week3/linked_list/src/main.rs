@@ -2,10 +2,10 @@ use linked_list::LinkedList;
 pub mod linked_list;
 
 fn main() {
-    let mut list: LinkedList<u32> = LinkedList::new();
+    let mut list: LinkedList<&str> = LinkedList::new();
     assert!(list.is_empty());
     assert_eq!(list.get_size(), 0);
-    for i in 1..12 {
+    for i in vec!["capture", "the", "flag"] {
         list.push_front(i);
     }
     println!("{}", list);
