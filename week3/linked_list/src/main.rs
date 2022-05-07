@@ -8,6 +8,8 @@ fn main() {
     for i in vec!["capture", "the", "flag"] {
         list.push_front(i);
     }
+    let raw_list = list.clone();
+
     println!("{}", list);
     println!("list size: {}", list.get_size());
     println!("top element: {}", list.pop_front().unwrap());
@@ -16,7 +18,8 @@ fn main() {
     println!("{}", list.to_string()); // ToString impl for anything impl Display
 
     // If you implement iterator trait:
-    //for val in &list {
-    //    println!("{}", val);
-    //}
+    println!("\nIterate the list:");
+    for val in &raw_list {
+        println!("{}", val);
+    }
 }

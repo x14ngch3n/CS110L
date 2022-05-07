@@ -91,3 +91,30 @@ impl<T: PartialEq> PartialEq for LinkedList<T> {
         self.size == other.size && self.head == other.head
     }
 }
+
+pub struct LinkedListIter<'a, T> {
+    current: &'a Option<Box<Node<T>>>,
+}
+
+impl<T: Clone> Iterator for LinkedListIter<'_, T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.current {
+            Some(node) => {
+                self.current = &node.next; // update iterator to next Item
+                Some(node.clone().value) // return the value
+            }
+            None => None,
+        }
+    }
+}
+
+impl<'a, T: Clone> IntoIterator for &'a LinkedList<T> {
+    type Item = T;
+    type IntoIter = LinkedListIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        LinkedListIter {
+            current: &self.head,
+        }
+    }
+}
