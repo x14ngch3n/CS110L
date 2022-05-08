@@ -77,6 +77,7 @@ fn main() {
     for _ in 0..num_threads {
         let vdq = Arc::clone(&vdq);
         let handle = thread::spawn(move || {
+            // vdq is mutable inside Arc
             let mut vdq = vdq.lock().unwrap();
             while !vdq.is_empty() {
                 factor_number(vdq.pop_front().unwrap());
