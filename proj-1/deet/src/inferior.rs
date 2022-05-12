@@ -67,6 +67,7 @@ impl Inferior {
         nix::unistd::Pid::from_raw(self.child.id() as i32)
     }
 
+    /// Print backtrace of current status till main
     pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
         let regs = ptrace::getregs(self.pid()).unwrap();
         let mut instruction_ptr = regs.rip as usize;
