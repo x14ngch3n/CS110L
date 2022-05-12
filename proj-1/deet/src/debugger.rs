@@ -38,20 +38,34 @@ impl Debugger {
                         // (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
-                        match Inferior::continue_run(self.inferior.as_mut().unwrap(), None)
-                            .ok()
-                            .unwrap()
-                        {
-                            Status::Exited(exit_code) => {
+                        match Inferior::continue_run(self.inferior.as_mut().unwrap(), None) {
+                            Ok(Status::Exited(exit_code)) => {
                                 println!("Child exited (status {})", exit_code)
                             }
-                            Status::Signaled(singal) => println!("Child exited with {}", singal),
-                            Status::Stopped(signal, rip) => {
+                            Ok(Status::Signaled(singal)) => {
+                                println!("Child exited with {}", singal)
+                            }
+                            Ok(Status::Stopped(signal, rip)) => {
                                 println!("Child stopped with {} at address {:#x}", signal, rip)
                             }
+                            Err(_) => (),
                         }
                     } else {
                         println!("Error starting subprocess");
+                    }
+                }
+                DebuggerCommand::Cont => {
+                    match Inferior::continue_run(self.inferior.as_mut().unwrap(), None) {
+                        Ok(Status::Exited(exit_code)) => {
+                            println!("Child exited (status {})", exit_code)
+                        }
+                        Ok(Status::Signaled(singal)) => {
+                            println!("Child exited with {}", singal)
+                        }
+                        Ok(Status::Stopped(signal, rip)) => {
+                            println!("Child stopped with {} at address {:#x}", signal, rip)
+                        }
+                        Err(_) => (),
                     }
                 }
                 DebuggerCommand::Quit => {
