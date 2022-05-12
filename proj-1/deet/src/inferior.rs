@@ -66,7 +66,8 @@ impl Inferior {
     }
 
     pub fn print_backtrace(&mut self) -> Result<(), nix::Error> {
-        println!("hello world");
+        let regs = ptrace::getregs(self.pid()).unwrap();
+        println!("%rip register: {:#x}", regs.rip);
         Ok(())
     }
 
