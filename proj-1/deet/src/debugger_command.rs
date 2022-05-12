@@ -2,6 +2,7 @@ pub enum DebuggerCommand {
     Quit,
     Cont,
     Back,
+    Break(String),
     Run(Vec<String>),
 }
 
@@ -11,6 +12,10 @@ impl DebuggerCommand {
             "q" | "quit" => Some(DebuggerCommand::Quit),
             "c" | "cont" | "continue" => Some(DebuggerCommand::Cont),
             "bt" | "back" | "backtrace" => Some(DebuggerCommand::Back),
+            "b" | "break" => {
+                let breakpoint = tokens[1];
+                Some(DebuggerCommand::Break(breakpoint.to_string()))
+            }
             "r" | "run" => {
                 let args = tokens[1..].to_vec();
                 Some(DebuggerCommand::Run(

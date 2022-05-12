@@ -10,6 +10,7 @@ pub struct Debugger {
     readline: Editor<()>,
     inferior: Option<Inferior>,
     debug_data: DwarfData,
+    breakpoints: Vec<usize>,
 }
 
 impl Debugger {
@@ -39,7 +40,17 @@ impl Debugger {
             readline,
             inferior: None,
             debug_data,
+            breakpoints: vec![],
         }
+    }
+
+    fn parse_address(addr: &str) -> Option<usize> {
+        let addr_without_0x = if addr.to_lowercase().starts_with("0x") {
+            &addr[2..]
+        } else {
+            &addr[..]
+        };
+        usize::from_str_radix(addr_without_0x, 16).ok()
     }
 
     pub fn run(&mut self) {
@@ -105,6 +116,7 @@ impl Debugger {
                         .print_backtrace(&self.debug_data)
                         .unwrap();
                 }
+                DebuggerCommand::Break(breakpoint) => {}
                 DebuggerCommand::Quit => {
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill().unwrap();
