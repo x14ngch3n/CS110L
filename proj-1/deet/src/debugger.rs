@@ -13,6 +13,15 @@ pub struct Debugger {
     breakpoints: Vec<usize>,
 }
 
+fn parse_address(address: &str) -> Option<usize> {
+    let address_without_0x = if address.to_lowercase().starts_with("0x") {
+        &address[2..]
+    } else {
+        &address[..]
+    };
+    usize::from_str_radix(address_without_0x, 16).ok()
+}
+
 impl Debugger {
     /// Initializes the debugger.
     pub fn new(target: &str) -> Debugger {
@@ -44,15 +53,6 @@ impl Debugger {
         }
     }
 
-    fn parse_address(addr: &str) -> Option<usize> {
-        let addr_without_0x = if addr.to_lowercase().starts_with("0x") {
-            &addr[2..]
-        } else {
-            &addr[..]
-        };
-        usize::from_str_radix(addr_without_0x, 16).ok()
-    }
-
     pub fn run(&mut self) {
         loop {
             match self.get_next_command() {
@@ -60,7 +60,7 @@ impl Debugger {
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill().unwrap();
                     }
-                    if let Some(inferior) = Inferior::new(&self.target, &args) {
+                    if let Some(inferior) = Inferior::new(&self.target, &args, &self.breakpoints) {
                         // Create the inferior
                         self.inferior = Some(inferior);
                         // (milestone 1): make the inferior run
@@ -77,9 +77,16 @@ impl Debugger {
                             }
                             Status::Stopped(signal, rip) => {
                                 println!("Child stopped with {} at address {:#x}", signal, rip);
-                                let function = self.debug_data.get_function_from_addr(rip).unwrap();
-                                let line = self.debug_data.get_line_from_addr(rip).unwrap();
-                                println!("Stopped at {} ({})", function, line);
+                                let function = self.debug_data.get_function_from_addr(rip);
+                                let line = self.debug_data.get_line_from_addr(rip);
+                                match (function, line) {
+                                    (Some(function), Some(line)) => {
+                                        println!("Stopped at {} ({})", function, line)
+                                    }
+                                    (_, _) => {
+                                        println!("Fail to resolve stopping function and line")
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -116,7 +123,21 @@ impl Debugger {
                         .print_backtrace(&self.debug_data)
                         .unwrap();
                 }
-                DebuggerCommand::Break(breakpoint) => {}
+                DebuggerCommand::Break(breakpoint) => {
+                    let address = match breakpoint.as_str().starts_with("*") {
+                        true => &breakpoint.as_str()[1..],
+                        false => unimplemented!(),
+                    };
+                    let address_val = parse_address(address).unwrap();
+                    if !self.breakpoints.contains(&address_val) {
+                        self.breakpoints.push(address_val);
+                    }
+                    println!(
+                        "Set breakpoint {} at {}",
+                        self.breakpoints.iter().count(),
+                        address
+                    )
+                }
                 DebuggerCommand::Quit => {
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill().unwrap();

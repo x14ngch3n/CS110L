@@ -29,14 +29,34 @@ fn child_traceme() -> Result<(), std::io::Error> {
     )))
 }
 
+fn align_addr_to_word(addr: usize) -> usize {
+    addr & (-(std::mem::size_of::<usize>() as isize) as usize)
+}
+
 pub struct Inferior {
     child: Child,
 }
 
 impl Inferior {
+    /// hack 0xcc into original instruction, turn it to a INT
+    fn write_byte(&mut self, addr: usize, val: u8) -> Result<u8, nix::Error> {
+        let aligned_addr = align_addr_to_word(addr);
+        let byte_offset = addr - aligned_addr;
+        let word = ptrace::read(self.pid(), aligned_addr as ptrace::AddressType)? as u64;
+        let orig_byte = (word >> 8 * byte_offset) & 0xff;
+        let masked_word = word & !(0xff << 8 * byte_offset);
+        let updated_word = masked_word | ((val as u64) << 8 * byte_offset);
+        ptrace::write(
+            self.pid(),
+            aligned_addr as ptrace::AddressType,
+            updated_word as *mut std::ffi::c_void,
+        )?;
+        Ok(orig_byte as u8)
+    }
+
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
-    pub fn new(target: &str, args: &Vec<String>) -> Option<Inferior> {
+    pub fn new(target: &str, args: &Vec<String>, breakpoints: &Vec<usize>) -> Option<Inferior> {
         // implement me!
         let mut command = Command::new(target);
         command.args(args);
@@ -44,7 +64,11 @@ impl Inferior {
             command.pre_exec(child_traceme);
         }
         let child = command.spawn().ok()?;
-        let inferior = Inferior { child };
+        let mut inferior = Inferior { child };
+        // insert breakpoint
+        for breakpoint in breakpoints.iter() {
+            inferior.write_byte(*breakpoint, 0xcc).unwrap();
+        }
         Some(inferior)
     }
 
