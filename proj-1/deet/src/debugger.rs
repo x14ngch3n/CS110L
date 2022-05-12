@@ -65,7 +65,10 @@ impl Debugger {
                                 self.inferior = None;
                             }
                             Status::Stopped(signal, rip) => {
-                                println!("Child stopped with {} at address {:#x}", signal, rip)
+                                println!("Child stopped with {} at address {:#x}", signal, rip);
+                                let function = self.debug_data.get_function_from_addr(rip).unwrap();
+                                let line = self.debug_data.get_line_from_addr(rip).unwrap();
+                                println!("Stopped at {} ({})", function, line);
                             }
                         }
                     } else {
