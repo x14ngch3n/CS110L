@@ -1,0 +1,10 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/cascades/cs110l-spr-2020-starter-code/proj-1/deet'
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/count samples/count.c
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/exit samples/exit.c
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/function_calls samples/function_calls.c
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/hello samples/hello.c
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/segfault samples/segfault.c
+cc  -O0 -g -no-pie -fno-omit-frame-pointer -o samples/sleepy_print samples/sleepy_print.c
+make: Leaving directory '/home/cascades/cs110l-spr-2020-starter-code/proj-1/deet'
+ 
