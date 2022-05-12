@@ -55,6 +55,10 @@ impl Debugger {
                     }
                 }
                 DebuggerCommand::Cont => {
+                    if self.inferior.is_none() {
+                        println!("The process is not being run");
+                        continue;
+                    }
                     match Inferior::continue_run(self.inferior.as_mut().unwrap(), None) {
                         Ok(Status::Exited(exit_code)) => {
                             println!("Child exited (status {})", exit_code)
