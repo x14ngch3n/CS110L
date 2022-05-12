@@ -2,7 +2,6 @@ use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
-use std::convert::TryInto;
 use std::os::unix::prelude::CommandExt;
 use std::process::{Child, Command};
 
@@ -70,16 +69,20 @@ impl Inferior {
 
     pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
         let regs = ptrace::getregs(self.pid()).unwrap();
-        let rip = regs.rip;
-        println!(
-            "{} ({})",
-            debug_data
-                .get_function_from_addr(rip.try_into().unwrap())
-                .unwrap(),
-            debug_data
-                .get_line_from_addr(rip.try_into().unwrap())
-                .unwrap(),
-        );
+        let mut instruction_ptr = regs.rip as usize;
+        let mut stackbase_ptr = regs.rbp as usize;
+        loop {
+            let function = debug_data.get_function_from_addr(instruction_ptr).unwrap();
+            let line = debug_data.get_line_from_addr(instruction_ptr).unwrap();
+            println!("{} ({})", function, line);
+            if function == String::from("main") {
+                break;
+            }
+            instruction_ptr = ptrace::read(self.pid(), (stackbase_ptr + 8) as ptrace::AddressType)
+                .unwrap() as usize;
+            stackbase_ptr =
+                ptrace::read(self.pid(), stackbase_ptr as ptrace::AddressType).unwrap() as usize;
+        }
         Ok(())
     }
 
