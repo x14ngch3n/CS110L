@@ -2,8 +2,11 @@ use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
+use std::convert::TryInto;
 use std::os::unix::prelude::CommandExt;
 use std::process::{Child, Command};
+
+use crate::dwarf_data::DwarfData;
 
 pub enum Status {
     /// Indicates inferior stopped. Contains the signal that stopped the process, as well as the
@@ -65,9 +68,18 @@ impl Inferior {
         nix::unistd::Pid::from_raw(self.child.id() as i32)
     }
 
-    pub fn print_backtrace(&mut self) -> Result<(), nix::Error> {
+    pub fn print_backtrace(&mut self, debug_data: &DwarfData) -> Result<(), nix::Error> {
         let regs = ptrace::getregs(self.pid()).unwrap();
-        println!("%rip register: {:#x}", regs.rip);
+        let rip = regs.rip;
+        println!(
+            "{} ({})",
+            debug_data
+                .get_function_from_addr(rip.try_into().unwrap())
+                .unwrap(),
+            debug_data
+                .get_line_from_addr(rip.try_into().unwrap())
+                .unwrap(),
+        );
         Ok(())
     }
 
