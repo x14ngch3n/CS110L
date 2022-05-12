@@ -42,14 +42,7 @@ impl Inferior {
             command.pre_exec(child_traceme);
         }
         let child = command.spawn().ok()?;
-        let mut inferior = Inferior { child };
-        match inferior.continue_run(None).ok()? {
-            Status::Exited(exit_code) => println!("Child exited (status {})", exit_code),
-            Status::Signaled(singal) => println!("Child exited with {}", singal),
-            Status::Stopped(signal, rip) => {
-                println!("Child stopped with {} at address {:#x}", signal, rip)
-            }
-        }
+        let inferior = Inferior { child };
         Some(inferior)
     }
 
