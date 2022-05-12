@@ -53,15 +53,21 @@ impl Inferior {
     }
 
     /// Kill the existing child process and reap it
-    pub fn kill(&mut self) {
+    pub fn kill(&mut self) -> Result<(), nix::Error> {
         self.child.kill().expect("Process is not running");
         self.wait(None).expect("Fail to reap the killed process");
         println!("Killing running inferior (pid {})", self.pid());
+        Ok(())
     }
 
     /// Returns the pid of this inferior.
     pub fn pid(&self) -> Pid {
         nix::unistd::Pid::from_raw(self.child.id() as i32)
+    }
+
+    pub fn print_backtrace(&mut self) -> Result<(), nix::Error> {
+        println!("hello world");
+        Ok(())
     }
 
     /// Calls waitpid on this inferior and returns a Status to indicate the state of the process

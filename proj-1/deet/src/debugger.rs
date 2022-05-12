@@ -33,7 +33,7 @@ impl Debugger {
             match self.get_next_command() {
                 DebuggerCommand::Run(args) => {
                     if self.inferior.is_some() {
-                        self.inferior.as_mut().unwrap().kill();
+                        self.inferior.as_mut().unwrap().kill().unwrap();
                     }
                     if let Some(inferior) = Inferior::new(&self.target, &args) {
                         // Create the inferior
@@ -77,9 +77,16 @@ impl Debugger {
                         }
                     }
                 }
+                DebuggerCommand::Back => {
+                    if self.inferior.is_none() {
+                        println!("The process is not being run");
+                        continue;
+                    }
+                    self.inferior.as_mut().unwrap().print_backtrace().unwrap();
+                }
                 DebuggerCommand::Quit => {
                     if self.inferior.is_some() {
-                        self.inferior.as_mut().unwrap().kill();
+                        self.inferior.as_mut().unwrap().kill().unwrap();
                     }
                     return;
                 }
