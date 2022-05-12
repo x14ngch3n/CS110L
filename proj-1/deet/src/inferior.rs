@@ -52,6 +52,13 @@ impl Inferior {
         self.wait(None)
     }
 
+    /// Kill the existing child process and reap it
+    pub fn kill(&mut self) {
+        self.child.kill().expect("Process is not running");
+        self.wait(None).expect("Fail to reap the killed process");
+        println!("Killing running inferior (pid {})", self.pid());
+    }
+
     /// Returns the pid of this inferior.
     pub fn pid(&self) -> Pid {
         nix::unistd::Pid::from_raw(self.child.id() as i32)

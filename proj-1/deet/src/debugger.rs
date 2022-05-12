@@ -32,18 +32,23 @@ impl Debugger {
         loop {
             match self.get_next_command() {
                 DebuggerCommand::Run(args) => {
+                    if self.inferior.is_some() {
+                        self.inferior.as_mut().unwrap().kill();
+                    }
                     if let Some(inferior) = Inferior::new(&self.target, &args) {
                         // Create the inferior
                         self.inferior = Some(inferior);
                         // (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
-                        match Inferior::continue_run(self.inferior.as_mut().unwrap(), None) {
+                        match self.inferior.as_mut().unwrap().continue_run(None) {
                             Ok(Status::Exited(exit_code)) => {
-                                println!("Child exited (status {})", exit_code)
+                                println!("Child exited (status {})", exit_code);
+                                self.inferior = None;
                             }
                             Ok(Status::Signaled(singal)) => {
-                                println!("Child exited with {}", singal)
+                                println!("Child exited with {}", singal);
+                                self.inferior = None;
                             }
                             Ok(Status::Stopped(signal, rip)) => {
                                 println!("Child stopped with {} at address {:#x}", signal, rip)
@@ -59,12 +64,14 @@ impl Debugger {
                         println!("The process is not being run");
                         continue;
                     }
-                    match Inferior::continue_run(self.inferior.as_mut().unwrap(), None) {
+                    match self.inferior.as_mut().unwrap().continue_run(None) {
                         Ok(Status::Exited(exit_code)) => {
-                            println!("Child exited (status {})", exit_code)
+                            println!("Child exited (status {})", exit_code);
+                            self.inferior = None;
                         }
                         Ok(Status::Signaled(singal)) => {
-                            println!("Child exited with {}", singal)
+                            println!("Child exited with {}", singal);
+                            self.inferior = None;
                         }
                         Ok(Status::Stopped(signal, rip)) => {
                             println!("Child stopped with {} at address {:#x}", signal, rip)
@@ -73,6 +80,9 @@ impl Debugger {
                     }
                 }
                 DebuggerCommand::Quit => {
+                    if self.inferior.is_some() {
+                        self.inferior.as_mut().unwrap().kill();
+                    }
                     return;
                 }
             }
