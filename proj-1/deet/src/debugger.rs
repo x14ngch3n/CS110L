@@ -41,19 +41,18 @@ impl Debugger {
                         // (milestone 1): make the inferior run
                         // You may use self.inferior.as_mut().unwrap() to get a mutable reference
                         // to the Inferior object
-                        match self.inferior.as_mut().unwrap().continue_run(None) {
-                            Ok(Status::Exited(exit_code)) => {
+                        match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                            Status::Exited(exit_code) => {
                                 println!("Child exited (status {})", exit_code);
                                 self.inferior = None;
                             }
-                            Ok(Status::Signaled(singal)) => {
+                            Status::Signaled(singal) => {
                                 println!("Child exited with {}", singal);
                                 self.inferior = None;
                             }
-                            Ok(Status::Stopped(signal, rip)) => {
+                            Status::Stopped(signal, rip) => {
                                 println!("Child stopped with {} at address {:#x}", signal, rip)
                             }
-                            Err(_) => (),
                         }
                     } else {
                         println!("Error starting subprocess");
@@ -64,19 +63,18 @@ impl Debugger {
                         println!("The process is not being run");
                         continue;
                     }
-                    match self.inferior.as_mut().unwrap().continue_run(None) {
-                        Ok(Status::Exited(exit_code)) => {
+                    match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
+                        Status::Exited(exit_code) => {
                             println!("Child exited (status {})", exit_code);
                             self.inferior = None;
                         }
-                        Ok(Status::Signaled(singal)) => {
+                        Status::Signaled(singal) => {
                             println!("Child exited with {}", singal);
                             self.inferior = None;
                         }
-                        Ok(Status::Stopped(signal, rip)) => {
+                        Status::Stopped(signal, rip) => {
                             println!("Child stopped with {} at address {:#x}", signal, rip)
                         }
-                        Err(_) => (),
                     }
                 }
                 DebuggerCommand::Quit => {
