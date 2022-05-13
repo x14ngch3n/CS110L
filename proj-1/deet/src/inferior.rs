@@ -54,7 +54,7 @@ impl Inferior {
         Ok(orig_byte as u8)
     }
 
-    // hack 0xcc into original instruction, turn it into INT
+    /// hack 0xcc into original instruction, turn it into INT
     pub fn write_breakpoint(&mut self, addr: usize) -> Result<u8, nix::Error> {
         self.write_byte(addr, 0xcc)
     }

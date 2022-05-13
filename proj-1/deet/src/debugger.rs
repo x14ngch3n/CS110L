@@ -145,6 +145,7 @@ impl Debugger {
                             continue;
                         }
                     };
+                    // discard duplicate breakpoint
                     if !self.breakpoints.contains(&breakpoint) {
                         // add breakpoint when process is stopped
                         if self.inferior.is_some() {
