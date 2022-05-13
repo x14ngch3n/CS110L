@@ -108,7 +108,17 @@ impl Debugger {
                             self.inferior = None;
                         }
                         Status::Stopped(signal, rip) => {
-                            println!("Child stopped with {} at address {:#x}", signal, rip)
+                            println!("Child stopped with {} at address {:#x}", signal, rip);
+                            let function = self.debug_data.get_function_from_addr(rip);
+                            let line = self.debug_data.get_line_from_addr(rip);
+                            match (function, line) {
+                                (Some(function), Some(line)) => {
+                                    println!("Stopped at {} ({})", function, line)
+                                }
+                                (_, _) => {
+                                    println!("Fail to resolve stopping function and line")
+                                }
+                            }
                         }
                     }
                 }
@@ -128,15 +138,27 @@ impl Debugger {
                         true => &breakpoint.as_str()[1..],
                         false => unimplemented!(),
                     };
-                    let address_val = parse_address(address).unwrap();
-                    if !self.breakpoints.contains(&address_val) {
-                        self.breakpoints.push(address_val);
+                    let breakpoint = match parse_address(address) {
+                        Some(breakpoint) => breakpoint,
+                        None => {
+                            println!("Invalid address: {}", address);
+                            continue;
+                        }
+                    };
+                    if !self.breakpoints.contains(&breakpoint) {
+                        // add breakpoint when process is stopped
+                        if self.inferior.is_some() {
+                            match self.inferior.as_mut().unwrap().write_breakpoint(breakpoint) {
+                                Ok(_) => (),
+                                Err(_) => {
+                                    println!("Fail to insert breakpoint at {:#x}", breakpoint);
+                                    continue;
+                                }
+                            }
+                        }
+                        self.breakpoints.push(breakpoint);
                     }
-                    println!(
-                        "Set breakpoint {} at {}",
-                        self.breakpoints.iter().count(),
-                        address
-                    )
+                    println!("Set breakpoint {} at {}", self.breakpoints.len(), address)
                 }
                 DebuggerCommand::Quit => {
                     if self.inferior.is_some() {

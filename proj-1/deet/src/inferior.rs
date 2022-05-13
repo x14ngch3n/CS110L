@@ -38,7 +38,7 @@ pub struct Inferior {
 }
 
 impl Inferior {
-    /// hack 0xcc into original instruction, turn it to a INT
+    /// hack a byte into original instruction
     fn write_byte(&mut self, addr: usize, val: u8) -> Result<u8, nix::Error> {
         let aligned_addr = align_addr_to_word(addr);
         let byte_offset = addr - aligned_addr;
@@ -54,6 +54,11 @@ impl Inferior {
         Ok(orig_byte as u8)
     }
 
+    // hack 0xcc into original instruction, turn it into INT
+    pub fn write_breakpoint(&mut self, addr: usize) -> Result<u8, nix::Error> {
+        self.write_byte(addr, 0xcc)
+    }
+
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
     pub fn new(target: &str, args: &Vec<String>, breakpoints: &Vec<usize>) -> Option<Inferior> {
@@ -65,9 +70,12 @@ impl Inferior {
         }
         let child = command.spawn().ok()?;
         let mut inferior = Inferior { child };
-        // insert breakpoint
+        // insert breakpoints before run
         for breakpoint in breakpoints.iter() {
-            inferior.write_byte(*breakpoint, 0xcc).unwrap();
+            match inferior.write_breakpoint(*breakpoint) {
+                Ok(_) => (),
+                Err(_) => println!("Fail to insert breakpoint at {:#x}", breakpoint),
+            }
         }
         Some(inferior)
     }
