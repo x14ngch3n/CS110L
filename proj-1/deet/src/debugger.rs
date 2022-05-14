@@ -180,7 +180,11 @@ impl Debugger {
                         // add breakpoint when process is stopped
                         if self.inferior.is_some() {
                             match self.inferior.as_mut().unwrap().write_breakpoint(breakpoint) {
-                                Ok(_) => (),
+                                Ok(orig_byte) => self
+                                    .breakpoints
+                                    .get_mut(&breakpoint)
+                                    .unwrap()
+                                    .set_byte(orig_byte),
                                 Err(_) => {
                                     println!("Fail to insert breakpoint at {:#x}", breakpoint);
                                     continue;
