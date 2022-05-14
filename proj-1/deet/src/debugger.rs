@@ -30,6 +30,14 @@ impl BreakPoint {
     }
 }
 
+impl std::fmt::Display for BreakPoint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "ID: {}", self.id).unwrap();
+        writeln!(f, "ADDR: {:#x}", self.addr).unwrap();
+        writeln!(f, "ORIN_BYTE: {}", self.orig_byte)
+    }
+}
+
 pub struct Debugger {
     target: String,
     history_path: String,
@@ -123,6 +131,14 @@ impl Debugger {
                         println!("The process is not being run");
                         continue;
                     }
+                    // check if stop in breakpoint
+                    let rip = self.inferior.as_ref().unwrap().get_previous_ins().unwrap();
+                    if self.breakpoints.contains_key(&rip) {
+                        println!(
+                            "Stopped at breakpoint: {}",
+                            self.breakpoints.get(&rip).unwrap()
+                        );
+                    }
                     match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
                         Status::Exited(exit_code) => {
                             println!("Child exited (status {})", exit_code);
@@ -175,7 +191,7 @@ impl Debugger {
                         // add breakpoint to global Hashmap, without knowing the orig_byte
                         self.breakpoints.insert(
                             breakpoint,
-                            BreakPoint::new(self.breakpoints.len(), breakpoint),
+                            BreakPoint::new(self.breakpoints.len() + 1, breakpoint),
                         );
                         // add breakpoint when process is stopped
                         if self.inferior.is_some() {
@@ -192,7 +208,11 @@ impl Debugger {
                             }
                         }
                     }
-                    println!("Set breakpoint {} at {}", self.breakpoints.len(), address)
+                    println!(
+                        "Set breakpoint {} at {}",
+                        self.breakpoints.get(&breakpoint).as_ref().unwrap().id,
+                        address
+                    )
                 }
                 DebuggerCommand::Quit => {
                     if self.inferior.is_some() {

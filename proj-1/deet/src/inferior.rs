@@ -40,7 +40,7 @@ pub struct Inferior {
 }
 
 impl Inferior {
-    /// hack a byte into original instruction, return the origin byte
+    /// Hack a byte into original instruction, return the origin byte
     fn write_byte(&mut self, addr: usize, val: u8) -> Result<u8, nix::Error> {
         let aligned_addr = align_addr_to_word(addr);
         let byte_offset = addr - aligned_addr;
@@ -56,9 +56,15 @@ impl Inferior {
         Ok(orig_byte as u8)
     }
 
-    /// hack 0xcc into original instruction, turn it into INT
+    /// Hack 0xcc into original instruction, turn it into INT
     pub fn write_breakpoint(&mut self, addr: usize) -> Result<u8, nix::Error> {
         self.write_byte(addr, 0xcc)
+    }
+
+    /// Check if the previous instruction a breakpoint
+    pub fn get_previous_ins(&self) -> Result<usize, nix::Error> {
+        let regs = ptrace::getregs(self.pid()).unwrap();
+        Ok(regs.rip as usize - 1)
     }
 
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
