@@ -67,6 +67,22 @@ impl Inferior {
         Ok(regs.rip as usize - 1)
     }
 
+    /// Restore the orignial instruction and step one, then restore to the breakpoint
+    pub fn step_breakpoint(&mut self, rip: usize, orin_byte: u8) -> Result<Status, nix::Error> {
+        self.write_byte(rip, orin_byte).unwrap();
+        let mut regs = ptrace::getregs(self.pid()).unwrap();
+        regs.rip = rip as u64;
+        ptrace::setregs(self.pid(), regs).unwrap();
+        ptrace::step(self.pid(), None).unwrap();
+        match self.wait(None).unwrap() {
+            Status::Stopped(s, rip) if s == signal::Signal::SIGABRT => {
+                self.write_breakpoint(rip).unwrap();
+                Ok(Status::Stopped(s, rip))
+            }
+            s => Ok(s),
+        }
+    }
+
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
     pub fn new(

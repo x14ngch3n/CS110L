@@ -138,6 +138,11 @@ impl Debugger {
                             "Stopped at breakpoint: {}",
                             self.breakpoints.get(&rip).unwrap()
                         );
+                        self.inferior
+                            .as_mut()
+                            .unwrap()
+                            .step_breakpoint(rip, self.breakpoints.get(&rip).unwrap().orig_byte)
+                            .unwrap();
                     }
                     match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
                         Status::Exited(exit_code) => {
