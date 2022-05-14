@@ -2,9 +2,11 @@ use nix::sys::ptrace;
 use nix::sys::signal;
 use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
+use std::collections::HashMap;
 use std::os::unix::prelude::CommandExt;
 use std::process::{Child, Command};
 
+use crate::debugger::BreakPoint;
 use crate::dwarf_data::DwarfData;
 
 pub enum Status {
@@ -38,7 +40,7 @@ pub struct Inferior {
 }
 
 impl Inferior {
-    /// hack a byte into original instruction
+    /// hack a byte into original instruction, return the origin byte
     fn write_byte(&mut self, addr: usize, val: u8) -> Result<u8, nix::Error> {
         let aligned_addr = align_addr_to_word(addr);
         let byte_offset = addr - aligned_addr;
@@ -61,20 +63,30 @@ impl Inferior {
 
     /// Attempts to start a new inferior process. Returns Some(Inferior) if successful, or None if
     /// an error is encountered.
-    pub fn new(target: &str, args: &Vec<String>, breakpoints: &Vec<usize>) -> Option<Inferior> {
+    pub fn new(
+        target: &str,
+        args: &Vec<String>,
+        breakpoints: &mut HashMap<usize, BreakPoint>,
+    ) -> Option<Inferior> {
         // implement me!
         let mut command = Command::new(target);
         command.args(args);
         unsafe {
             command.pre_exec(child_traceme);
         }
+        // call fork and exec, return a SIGTRAP
         let child = command.spawn().ok()?;
+        // check if child is successfully created
         let mut inferior = Inferior { child };
+        match inferior.wait(None).unwrap() {
+            Status::Stopped(signal, _) if signal == signal::Signal::SIGTRAP => (),
+            _ => return None,
+        }
         // insert breakpoints before run
-        for breakpoint in breakpoints.iter() {
-            match inferior.write_breakpoint(*breakpoint) {
-                Ok(_) => (),
-                Err(_) => println!("Fail to insert breakpoint at {:#x}", breakpoint),
+        for breakpoint in breakpoints.values_mut() {
+            match inferior.write_breakpoint(breakpoint.addr()) {
+                Ok(orig_byte) => breakpoint.set_byte(orig_byte),
+                Err(_) => println!("Fail to insert breakpoint at {:#x}", breakpoint.addr()),
             }
         }
         Some(inferior)

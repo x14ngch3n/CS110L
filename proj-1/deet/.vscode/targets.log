@@ -6,8 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri May 13 15:45:44 2022
- 
+# Make data base, printed on Sat May 14 21:24:24 2022
 
 # Variables
 
@@ -110,7 +109,7 @@ HOSTTYPE = x86_64
 # automatic
 +F = $(notdir $+)
 # environment
-WSL_INTEROP = /run/WSL/260_interop
+WSL_INTEROP = /run/WSL/5665_interop
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -130,7 +129,7 @@ VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-5f55de2f-7ed9-414d-a4d6-1e666d2d95c1.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-76adfb1b-8a8c-4ec9-b5de-c2783907e75f.sock
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -282,6 +281,7 @@ samples/count: samples/count.c
 samples/segfault: samples/segfault.c
 #  Implicit rule search has been done.
 #  Implicit/static pattern stem: 'samples/segfault'
+ 
 #  Last modified 2022-05-12 15:47:43.556238214
 #  File has been updated.
 #  Successfully updated.
@@ -291,7 +291,6 @@ samples/segfault: samples/segfault.c
 # Not a target:
 samples/hello.c:
 #  Implicit rule search has been done.
- 
 #  Last modified 2022-04-26 23:43:17.203422282
 #  File has been updated.
 #  Successfully updated.
@@ -310,6 +309,6 @@ samples/hello.c:
 # strcache performance: lookups = 89 / hit rate = 35%
 # hash-table stats:
 # Load=57/8192=1%, Rehash=0, Collisions=0/89=0%
-# Finished Make data base on Fri May 13 15:45:44 2022
+# Finished Make data base on Sat May 14 21:24:24 2022
 
  

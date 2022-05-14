@@ -3,6 +3,32 @@ use crate::dwarf_data::{DwarfData, Error as DwarfError};
 use crate::inferior::{Inferior, Status};
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use std::collections::HashMap;
+
+#[derive(Clone, PartialEq)]
+pub struct BreakPoint {
+    id: usize,
+    addr: usize,
+    orig_byte: u8,
+}
+
+impl BreakPoint {
+    fn new(id: usize, addr: usize) -> Self {
+        BreakPoint {
+            id,
+            addr,
+            orig_byte: 0,
+        }
+    }
+
+    pub fn addr(&self) -> usize {
+        self.addr
+    }
+
+    pub fn set_byte(&mut self, orig_byte: u8) {
+        self.orig_byte = orig_byte
+    }
+}
 
 pub struct Debugger {
     target: String,
@@ -10,7 +36,7 @@ pub struct Debugger {
     readline: Editor<()>,
     inferior: Option<Inferior>,
     debug_data: DwarfData,
-    breakpoints: Vec<usize>,
+    breakpoints: HashMap<usize, BreakPoint>,
 }
 
 fn parse_address(address: &str) -> Option<usize> {
@@ -49,7 +75,7 @@ impl Debugger {
             readline,
             inferior: None,
             debug_data,
-            breakpoints: vec![],
+            breakpoints: HashMap::new(),
         }
     }
 
@@ -60,12 +86,11 @@ impl Debugger {
                     if self.inferior.is_some() {
                         self.inferior.as_mut().unwrap().kill().unwrap();
                     }
-                    if let Some(inferior) = Inferior::new(&self.target, &args, &self.breakpoints) {
+                    if let Some(inferior) =
+                        Inferior::new(&self.target, &args, &mut self.breakpoints)
+                    {
                         // Create the inferior
                         self.inferior = Some(inferior);
-                        // (milestone 1): make the inferior run
-                        // You may use self.inferior.as_mut().unwrap() to get a mutable reference
-                        // to the Inferior object
                         match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
                             Status::Exited(exit_code) => {
                                 println!("Child exited (status {})", exit_code);
@@ -146,7 +171,12 @@ impl Debugger {
                         }
                     };
                     // discard duplicate breakpoint
-                    if !self.breakpoints.contains(&breakpoint) {
+                    if !self.breakpoints.contains_key(&breakpoint) {
+                        // add breakpoint to global Hashmap, without knowing the orig_byte
+                        self.breakpoints.insert(
+                            breakpoint,
+                            BreakPoint::new(self.breakpoints.len(), breakpoint),
+                        );
                         // add breakpoint when process is stopped
                         if self.inferior.is_some() {
                             match self.inferior.as_mut().unwrap().write_breakpoint(breakpoint) {
@@ -157,7 +187,6 @@ impl Debugger {
                                 }
                             }
                         }
-                        self.breakpoints.push(breakpoint);
                     }
                     println!("Set breakpoint {} at {}", self.breakpoints.len(), address)
                 }
