@@ -203,10 +203,7 @@ impl Debugger {
                     let breakpoint = match get_breakpoint_type(&breakpoint) {
                         BreakPointType::Raw(address) => parse_address(address).unwrap(),
                         BreakPointType::Line(line) => {
-                            match self
-                                .debug_data
-                                .get_addr_for_line(Some(self.target.as_str()), line)
-                            {
+                            match self.debug_data.get_addr_for_line(None, line) {
                                 Some(addr) => addr,
                                 None => {
                                     println!("Failed to find the address of line {}", line);
@@ -215,10 +212,7 @@ impl Debugger {
                             }
                         }
                         BreakPointType::Func(func) => {
-                            match self
-                                .debug_data
-                                .get_addr_for_function(Some(self.target.as_str()), func)
-                            {
+                            match self.debug_data.get_addr_for_function(None, func) {
                                 Some(addr) => addr,
                                 None => {
                                     println!("Failed to find the address of function {}", func);
