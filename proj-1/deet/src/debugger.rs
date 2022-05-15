@@ -135,14 +135,18 @@ impl Debugger {
                     let rip = self.inferior.as_ref().unwrap().get_previous_ins().unwrap();
                     if self.breakpoints.contains_key(&rip) {
                         println!(
-                            "Stopped at breakpoint: {}",
+                            "Previously Stopped at breakpoint: {}\n",
                             self.breakpoints.get(&rip).unwrap()
                         );
-                        self.inferior
+                        if !self
+                            .inferior
                             .as_mut()
                             .unwrap()
                             .step_breakpoint(rip, self.breakpoints.get(&rip).unwrap().orig_byte)
-                            .unwrap();
+                        {
+                            println!("Failed to step by the breakpoint");
+                            continue;
+                        }
                     }
                     match self.inferior.as_mut().unwrap().continue_run(None).unwrap() {
                         Status::Exited(exit_code) => {
