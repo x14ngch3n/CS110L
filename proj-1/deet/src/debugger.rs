@@ -32,9 +32,9 @@ impl BreakPoint {
 
 impl std::fmt::Display for BreakPoint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "ID: {}", self.id).unwrap();
-        writeln!(f, "ADDR: {:#x}", self.addr).unwrap();
-        writeln!(f, "ORIN_BYTE: {}", self.orig_byte)
+        write!(f, "ID: {} ", self.id).unwrap();
+        write!(f, "ADDR: {:#x} ", self.addr).unwrap();
+        write!(f, "ORIN_BYTE: {} ", self.orig_byte)
     }
 }
 

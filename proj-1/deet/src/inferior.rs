@@ -69,11 +69,15 @@ impl Inferior {
 
     /// Restore the orignial instruction and step one, then restore to the breakpoint
     pub fn step_breakpoint(&mut self, rip: usize, orin_byte: u8) -> Result<Status, nix::Error> {
+        // restore instruction
         self.write_byte(rip, orin_byte).unwrap();
+        // rewind rip to the stopped instruction
         let mut regs = ptrace::getregs(self.pid()).unwrap();
         regs.rip = rip as u64;
         ptrace::setregs(self.pid(), regs).unwrap();
+        // step one the original instruction
         ptrace::step(self.pid(), None).unwrap();
+        // restore the breakpoint and return to resume the normal execution
         match self.wait(None).unwrap() {
             Status::Stopped(s, rip) if s == signal::Signal::SIGABRT => {
                 self.write_breakpoint(rip).unwrap();
