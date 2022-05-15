@@ -56,6 +56,22 @@ fn parse_address(address: &str) -> Option<usize> {
     usize::from_str_radix(address_without_0x, 16).ok()
 }
 
+enum BreakPointType<'a> {
+    Raw(&'a str),
+    Line(usize),
+    Func(&'a str),
+}
+
+fn get_breakpoint_type(breakpoint: &str) -> BreakPointType {
+    if breakpoint.starts_with('*') {
+        return BreakPointType::Raw(&breakpoint[1..]);
+    }
+    match usize::from_str_radix(breakpoint, 10) {
+        Ok(line) => BreakPointType::Line(line),
+        Err(_) => BreakPointType::Func(breakpoint),
+    }
+}
+
 impl Debugger {
     /// Initializes the debugger.
     pub fn new(target: &str) -> Debugger {
@@ -184,18 +200,33 @@ impl Debugger {
                         .unwrap();
                 }
                 DebuggerCommand::Break(breakpoint) => {
-                    let address = match breakpoint.as_str().starts_with("*") {
-                        true => &breakpoint.as_str()[1..],
-                        false => unimplemented!(),
-                    };
-                    let breakpoint = match parse_address(address) {
-                        Some(breakpoint) => breakpoint,
-                        None => {
-                            println!("Invalid address: {}", address);
-                            continue;
+                    let breakpoint = match get_breakpoint_type(&breakpoint) {
+                        BreakPointType::Raw(address) => parse_address(address).unwrap(),
+                        BreakPointType::Line(line) => {
+                            match self
+                                .debug_data
+                                .get_addr_for_line(Some(self.target.as_str()), line)
+                            {
+                                Some(addr) => addr,
+                                None => {
+                                    println!("Failed to find the address of line {}", line);
+                                    continue;
+                                }
+                            }
+                        }
+                        BreakPointType::Func(func) => {
+                            match self
+                                .debug_data
+                                .get_addr_for_function(Some(self.target.as_str()), func)
+                            {
+                                Some(addr) => addr,
+                                None => {
+                                    println!("Failed to find the address of function {}", func);
+                                    continue;
+                                }
+                            }
                         }
                     };
-                    // discard duplicate breakpoint
                     if !self.breakpoints.contains_key(&breakpoint) {
                         // add breakpoint to global Hashmap, without knowing the orig_byte
                         self.breakpoints.insert(
@@ -220,7 +251,7 @@ impl Debugger {
                     println!(
                         "Set breakpoint {} at {}",
                         self.breakpoints.get(&breakpoint).as_ref().unwrap().id,
-                        address
+                        breakpoint
                     )
                 }
                 DebuggerCommand::Quit => {
