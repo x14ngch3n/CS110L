@@ -202,6 +202,7 @@ impl Debugger {
                 DebuggerCommand::Break(breakpoint) => {
                     let breakpoint = match get_breakpoint_type(&breakpoint) {
                         BreakPointType::Raw(address) => parse_address(address).unwrap(),
+                        // unable to get lines info in dwarf file, don't know why
                         BreakPointType::Line(line) => {
                             match self.debug_data.get_addr_for_line(None, line) {
                                 Some(addr) => addr,
