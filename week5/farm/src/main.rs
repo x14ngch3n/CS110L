@@ -1,5 +1,6 @@
+use crossbeam::channel;
 use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
+use std::io::BufRead;
 use std::time::Instant;
 use std::{env, process, thread};
 
@@ -47,6 +48,7 @@ fn factor_number(num: u32) {
     println!("{} = {} [time: {:?}]", num, factors_str, start.elapsed());
 }
 
+#[allow(unused)]
 /// Returns a list of numbers supplied via argv.
 fn get_input_numbers() -> VecDeque<u32> {
     let mut numbers = VecDeque::new();
@@ -61,35 +63,36 @@ fn get_input_numbers() -> VecDeque<u32> {
     numbers
 }
 
-fn get_curr_number(vdq: &mut Arc<Mutex<VecDeque<u32>>>) -> Option<u32> {
-    // vdq is mutable inside Arc
-    let mut vdq = vdq.lock().unwrap();
-    match vdq.pop_front() {
-        Some(number) => Some(number),
-        None => None,
-    }
-}
-
 fn main() {
     let num_threads = num_cpus::get();
     println!("Farm starting on {} CPUs", num_threads);
     let start = Instant::now();
 
-    // call get_input_numbers() and store a queue of numbers to factor
-    let vdq = Arc::new(Mutex::new(get_input_numbers()));
+    // create channels and let every thread receive it
     let mut handles = Vec::new();
-
-    // spawn `num_threads` threads, each of which pops numbers off the queue and calls
-    // factor_number() until the queue is empty
+    let (sender, receiver) = channel::unbounded();
     for _ in 0..num_threads {
-        let mut vdq = Arc::clone(&vdq);
-        let handle = thread::spawn(move || loop {
-            match get_curr_number(&mut vdq) {
-                Some(num) => factor_number(num),
-                None => break,
+        let receiver_clone = receiver.clone();
+        // wait until sender down, the recv() will unwrap()
+        handles.push(thread::spawn(move || {
+            while let Ok(num) = receiver_clone.recv() {
+                factor_number(num);
             }
-        });
-        handles.push(handle);
+        }));
+    }
+
+    println!("Please input your number to factor, seperated by space:");
+    let stdin = std::io::stdin();
+    for line in stdin.lock().lines() {
+        for val in line.unwrap().split(" ") {
+            if let Ok(num) = val.parse::<u32>() {
+                sender
+                    .send(num)
+                    .expect("Tried to write to channels, while there's no receivers");
+            } else {
+                println!("Failed to parse {} to u32", val);
+            }
+        }
     }
 
     // join all the threads you created
