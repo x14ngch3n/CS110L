@@ -34,10 +34,10 @@ where
         in_sender.send((idx, num)).expect("There's no in_receiver");
     }
 
-    // tells in_receivers there's no in_senders
+    // tells in_receivers there's no in_senders, otherwise worker threads will hanging
     drop(in_sender);
 
-    // tells out_receivers there's no out_senders
+    // tells out_receivers there's no out_senders, otherwise main thread will hanging
     drop(out_sender);
 
     // receive result in order
