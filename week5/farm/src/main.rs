@@ -95,6 +95,9 @@ fn main() {
         }
     }
 
+    // let receiver know there's no sender anymore
+    drop(sender);
+
     // join all the threads you created
     for handle in handles {
         handle.join().unwrap();
