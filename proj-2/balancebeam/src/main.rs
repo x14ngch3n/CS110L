@@ -35,6 +35,33 @@ struct CmdOptions {
     max_requests_per_minute: usize,
 }
 
+#[derive(Clone)]
+struct Upstream {
+    address: String,
+    alive: bool,
+}
+
+impl Upstream {
+    fn new(address: String) -> Self {
+        Upstream {
+            address: address,
+            alive: false,
+        }
+    }
+
+    fn new_vec(addresses: Vec<String>) -> Vec<Self> {
+        let mut vec = Vec::<Upstream>::new();
+        for address in addresses {
+            vec.push(Upstream::new(address))
+        }
+        vec
+    }
+
+    fn get_addr(&self) -> &String {
+        &self.address
+    }
+}
+
 /// Contains information about the state of balancebeam (e.g. what servers we are currently proxying
 /// to, what servers have failed, rate limiting counts, etc.)
 ///
@@ -50,8 +77,8 @@ struct ProxyState {
     /// Maximum number of requests an individual IP can make in a minute (Milestone 5)
     #[allow(dead_code)]
     max_requests_per_minute: usize,
-    /// Addresses of servers that we are proxying to
-    upstream_addresses: Vec<String>,
+    /// Addresses and livenesses of servers that we are proxying to
+    upstreams: Vec<Upstream>,
 }
 
 #[tokio::main]
@@ -83,7 +110,7 @@ async fn main() {
 
     // Handle incoming connections
     let state = ProxyState {
-        upstream_addresses: options.upstream,
+        upstreams: Upstream::new_vec(options.upstream),
         active_health_check_interval: options.active_health_check_interval,
         active_health_check_path: options.active_health_check_path,
         max_requests_per_minute: options.max_requests_per_minute,
@@ -103,13 +130,12 @@ async fn main() {
 
 async fn connect_to_upstream(state: &ProxyState) -> Result<TcpStream, std::io::Error> {
     let mut rng = rand::rngs::StdRng::from_entropy();
-    let upstream_idx = rng.gen_range(0, state.upstream_addresses.len());
-    let upstream_ip = &state.upstream_addresses[upstream_idx];
+    let upstream_idx = rng.gen_range(0, state.upstreams.len());
+    let upstream_ip = state.upstreams[upstream_idx].get_addr();
     TcpStream::connect(upstream_ip).await.or_else(|err| {
         log::error!("Failed to connect to upstream {}: {}", upstream_ip, err);
         Err(err)
     })
-    // TODO: implement failover (milestone 3)
 }
 
 async fn send_response(client_conn: &mut TcpStream, response: &http::Response<Vec<u8>>) {
