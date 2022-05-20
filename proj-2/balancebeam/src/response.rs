@@ -79,7 +79,6 @@ fn parse_response(buffer: &[u8]) -> Result<Option<(http::Response<Vec<u8>>, usiz
 ///
 /// Returns Ok(http::Response) if a valid response is received, or Error if not.
 ///
-/// You will need to modify this function in Milestone 2.
 async fn read_headers(stream: &mut TcpStream) -> Result<http::Response<Vec<u8>>, Error> {
     // Try reading the headers from the response. We may not receive all the headers in one shot
     // (e.g. we might receive the first few bytes of a response, and then the rest follows later).
@@ -114,7 +113,6 @@ async fn read_headers(stream: &mut TcpStream) -> Result<http::Response<Vec<u8>>,
 /// This function reads the body for a response from the stream. If the Content-Length header is
 /// present, it reads that many bytes; otherwise, it reads bytes until the connection is closed.
 ///
-/// You will need to modify this function in Milestone 2.
 async fn read_body(
     stream: &mut TcpStream,
     response: &mut http::Response<Vec<u8>>,
@@ -162,7 +160,6 @@ async fn read_body(
 /// This function reads and returns an HTTP response from a stream, returning an Error if the server
 /// closes the connection prematurely or sends an invalid response.
 ///
-/// You will need to modify this function in Milestone 2.
 pub async fn read_from_stream(
     stream: &mut TcpStream,
     request_method: &http::Method,
@@ -182,7 +179,6 @@ pub async fn read_from_stream(
 
 /// This function serializes a response to bytes and writes those bytes to the provided stream.
 ///
-/// You will need to modify this function in Milestone 2.
 pub async fn write_to_stream(
     response: &http::Response<Vec<u8>>,
     stream: &mut TcpStream,
