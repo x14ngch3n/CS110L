@@ -66,6 +66,10 @@ impl Upstream {
     fn get_addr(&self) -> &String {
         &self.address
     }
+
+    async fn is_alive(&self) -> bool {
+        *self.alive.clone().read().await
+    }
 }
 
 /// Contains information about the state of balancebeam (e.g. what servers we are currently proxying
@@ -137,8 +141,7 @@ async fn main() {
 async fn exist_alive_upstream(upstreams: &Vec<Upstream>) -> Option<u32> {
     let mut cnt = 0;
     for upstream in upstreams.iter() {
-        let alive = upstream.alive.read().await;
-        cnt += *alive as u32;
+        cnt += upstream.is_alive().await as u32;
     }
     match cnt {
         0 => None,
@@ -152,6 +155,9 @@ async fn connect_to_upstream(state: &ProxyState) -> Result<TcpStream, Error> {
             Some(_) => {
                 let mut rng = rand::rngs::StdRng::from_entropy();
                 let upstream_idx = rng.gen_range(0, state.upstreams.len());
+                if !state.upstreams[upstream_idx].is_alive().await {
+                    continue;
+                }
                 let upstream_ip = state.upstreams[upstream_idx].get_addr();
                 match TcpStream::connect(upstream_ip).await {
                     Ok(stream) => return Ok(stream),
