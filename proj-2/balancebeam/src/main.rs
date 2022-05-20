@@ -1,11 +1,17 @@
 mod request;
 mod response;
 
+use std::{
+    io::{Error, ErrorKind},
+    sync::Arc,
+};
+
 use clap::Parser;
 use rand::{Rng, SeedableRng};
 use tokio::{
     net::{TcpListener, TcpStream},
     stream::StreamExt,
+    sync::RwLock,
     task,
 };
 
@@ -38,14 +44,14 @@ struct CmdOptions {
 #[derive(Clone)]
 struct Upstream {
     address: String,
-    alive: bool,
+    alive: Arc<RwLock<bool>>,
 }
 
 impl Upstream {
     fn new(address: String) -> Self {
         Upstream {
             address: address,
-            alive: false,
+            alive: Arc::new(RwLock::new(true)),
         }
     }
 
@@ -128,14 +134,43 @@ async fn main() {
     }
 }
 
-async fn connect_to_upstream(state: &ProxyState) -> Result<TcpStream, std::io::Error> {
-    let mut rng = rand::rngs::StdRng::from_entropy();
-    let upstream_idx = rng.gen_range(0, state.upstreams.len());
-    let upstream_ip = state.upstreams[upstream_idx].get_addr();
-    TcpStream::connect(upstream_ip).await.or_else(|err| {
-        log::error!("Failed to connect to upstream {}: {}", upstream_ip, err);
-        Err(err)
-    })
+async fn exist_alive_upstream(upstreams: &Vec<Upstream>) -> Option<u32> {
+    let mut cnt = 0;
+    for upstream in upstreams.iter() {
+        let alive = upstream.alive.read().await;
+        cnt += *alive as u32;
+    }
+    match cnt {
+        0 => None,
+        cnt => Some(cnt),
+    }
+}
+
+async fn connect_to_upstream(state: &ProxyState) -> Result<TcpStream, Error> {
+    loop {
+        match exist_alive_upstream(&state.upstreams).await {
+            Some(_) => {
+                let mut rng = rand::rngs::StdRng::from_entropy();
+                let upstream_idx = rng.gen_range(0, state.upstreams.len());
+                let upstream_ip = state.upstreams[upstream_idx].get_addr();
+                match TcpStream::connect(upstream_ip).await {
+                    Ok(stream) => return Ok(stream),
+                    Err(err) => {
+                        log::error!("Failed to connect to upstream {}: {}", upstream_ip, err);
+                        let mut alive = state.upstreams[upstream_idx].alive.write().await;
+                        *alive = false;
+                    }
+                }
+            }
+            None => {
+                log::error!("All upstream servers are down");
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    "All upstream servers are down",
+                ));
+            }
+        }
+    }
 }
 
 async fn send_response(client_conn: &mut TcpStream, response: &http::Response<Vec<u8>>) {
