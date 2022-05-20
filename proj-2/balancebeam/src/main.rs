@@ -2,8 +2,10 @@ mod request;
 mod response;
 
 use std::{
+    convert::TryInto,
     io::{Error, ErrorKind},
     sync::Arc,
+    time::Duration,
 };
 
 use clap::Parser;
@@ -13,6 +15,7 @@ use tokio::{
     stream::StreamExt,
     sync::RwLock,
     task,
+    time::delay_for,
 };
 
 /// Contains information parsed from the command-line invocation of balancebeam. The Clap macros
@@ -84,10 +87,8 @@ impl Upstream {
 #[derive(Clone)]
 struct ProxyState {
     /// How frequently we check whether upstream servers are alive (Milestone 4)
-    #[allow(dead_code)]
     active_health_check_interval: usize,
     /// Where we should send requests when doing active health checks (Milestone 4)
-    #[allow(dead_code)]
     active_health_check_path: String,
     /// Maximum number of requests an individual IP can make in a minute (Milestone 5)
     #[allow(dead_code)]
@@ -123,7 +124,7 @@ async fn main() {
     };
     log::info!("Listening for requests on {}", options.bind);
 
-    // Handle incoming connections
+    // Initialize ProxyState
     let state = ProxyState {
         upstreams: Upstream::new_vec(options.upstream),
         active_health_check_interval: options.active_health_check_interval,
@@ -131,6 +132,11 @@ async fn main() {
         max_requests_per_minute: options.max_requests_per_minute,
     };
 
+    // Start active health check in seperate async task
+    let state_clone = state.clone();
+    task::spawn(async move { active_health_check(state_clone).await });
+
+    // Spawn async task for each incoming connection
     let mut incoming = listener.incoming();
     while let Some(stream) = incoming.next().await {
         if let Ok(stream) = stream {
@@ -139,6 +145,66 @@ async fn main() {
             task::spawn(async move {
                 handle_connection(stream, &state).await;
             });
+        }
+    }
+}
+
+async fn active_health_check(state: ProxyState) {
+    loop {
+        delay_for(Duration::from_secs(
+            state.active_health_check_interval.try_into().unwrap(),
+        ))
+        .await;
+        for upstream in state.upstreams.iter() {
+            // get TCPStream
+            let mut upstream_conn = match TcpStream::connect(upstream.get_addr()).await {
+                Ok(stream) => stream,
+                Err(err) => {
+                    log::error!(
+                        "Failed to connect to upstream {}: {}",
+                        upstream.get_addr(),
+                        err
+                    );
+                    upstream.set_alive(false).await;
+                    continue;
+                }
+            };
+            // create request
+            let request = http::Request::builder()
+                .method(http::Method::GET)
+                .uri(&state.active_health_check_path)
+                .header("Host", upstream.get_addr())
+                .body(Vec::new())
+                .unwrap();
+            // request to upstream server
+            if let Err(error) = request::write_to_stream(&request, &mut upstream_conn).await {
+                log::error!(
+                    "Failed to send request to upstream {}: {}",
+                    upstream.get_addr(),
+                    error
+                );
+                upstream.set_alive(false).await;
+                continue;
+            }
+            log::debug!(
+                "Active health check of upstream server: {}",
+                upstream.get_addr()
+            );
+            // check aliveness and update status
+            match response::read_from_stream(&mut upstream_conn, request.method()).await {
+                Ok(response) if response.status().as_u16() == 200 => {
+                    log::debug!("Upstream server {} is alive", upstream.get_addr());
+                    upstream.set_alive(true).await
+                }
+                Ok(_) => {
+                    log::error!("Upstream server {} not response OK", upstream.get_addr());
+                    upstream.set_alive(false).await
+                }
+                Err(error) => {
+                    log::error!("Error reading response from server: {:?}", error);
+                    upstream.set_alive(false).await
+                }
+            };
         }
     }
 }
