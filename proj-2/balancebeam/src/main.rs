@@ -68,7 +68,12 @@ impl Upstream {
     }
 
     async fn is_alive(&self) -> bool {
-        *self.alive.clone().read().await
+        *self.alive.read().await
+    }
+
+    async fn set_alive(&self, status: bool) {
+        let mut alive = self.alive.write().await;
+        *alive = status;
     }
 }
 
@@ -155,16 +160,16 @@ async fn connect_to_upstream(state: &ProxyState) -> Result<TcpStream, Error> {
             Some(_) => {
                 let mut rng = rand::rngs::StdRng::from_entropy();
                 let upstream_idx = rng.gen_range(0, state.upstreams.len());
-                if !state.upstreams[upstream_idx].is_alive().await {
+                let upstream = &state.upstreams[upstream_idx];
+                if !upstream.is_alive().await {
                     continue;
                 }
-                let upstream_ip = state.upstreams[upstream_idx].get_addr();
+                let upstream_ip = upstream.get_addr();
                 match TcpStream::connect(upstream_ip).await {
                     Ok(stream) => return Ok(stream),
                     Err(err) => {
                         log::error!("Failed to connect to upstream {}: {}", upstream_ip, err);
-                        let mut alive = state.upstreams[upstream_idx].alive.write().await;
-                        *alive = false;
+                        upstream.set_alive(false).await;
                     }
                 }
             }
