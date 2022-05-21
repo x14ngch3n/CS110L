@@ -2,6 +2,7 @@ mod request;
 mod response;
 
 use std::{
+    collections::HashMap,
     convert::TryInto,
     io::{Error, ErrorKind},
     sync::Arc,
@@ -91,10 +92,11 @@ struct ProxyState {
     /// Where we should send requests when doing active health checks (Milestone 4)
     active_health_check_path: String,
     /// Maximum number of requests an individual IP can make in a minute (Milestone 5)
-    #[allow(dead_code)]
     max_requests_per_minute: usize,
     /// Addresses and livenesses of servers that we are proxying to
     upstreams: Vec<Upstream>,
+    /// Number of requests an individual IP has made in a minute
+    rates: Arc<RwLock<HashMap<String, usize>>>,
 }
 
 #[tokio::main]
@@ -127,6 +129,7 @@ async fn main() {
     // Initialize ProxyState
     let state = ProxyState {
         upstreams: Upstream::new_vec(options.upstream),
+        rates: Arc::new(RwLock::new(HashMap::new())),
         active_health_check_interval: options.active_health_check_interval,
         active_health_check_path: options.active_health_check_path,
         max_requests_per_minute: options.max_requests_per_minute,
@@ -135,6 +138,12 @@ async fn main() {
     // Start active health check in seperate async task
     let state_clone = state.clone();
     task::spawn(async move { active_health_check(state_clone).await });
+
+    // Start rate limiting with fixed window
+    if state.max_requests_per_minute > 0 {
+        let state_clone = state.clone();
+        task::spawn(async move { reset_rates_with_fixed_window(state_clone).await });
+    }
 
     // Spawn async task for each incoming connection
     let mut incoming = listener.incoming();
@@ -263,9 +272,31 @@ async fn send_response(client_conn: &mut TcpStream, response: &http::Response<Ve
     }
 }
 
+async fn update_rate_and_check(state: &ProxyState, client_ip: &String) -> bool {
+    let mut rates = state.rates.write().await;
+    let rate = rates.get_mut(client_ip).unwrap();
+    *rate += 1;
+    match *rate {
+        rate if rate > state.max_requests_per_minute => false,
+        _ => true,
+    }
+}
+
+async fn reset_rates_with_fixed_window(state: ProxyState) {
+    delay_for(Duration::from_secs(60)).await;
+    for rate in state.rates.write().await.values_mut() {
+        *rate = 0;
+    }
+}
+
 async fn handle_connection(mut client_conn: TcpStream, state: &ProxyState) {
     let client_ip = client_conn.peer_addr().unwrap().ip().to_string();
     log::info!("Connection received from {}", client_ip);
+
+    // Add client IP to rate limit control
+    if !state.rates.read().await.contains_key(&client_ip) {
+        state.rates.write().await.insert(client_ip.clone(), 0);
+    }
 
     // Open a connection to a random destination server
     let mut upstream_conn = match connect_to_upstream(state).await {
@@ -314,6 +345,14 @@ async fn handle_connection(mut client_conn: TcpStream, state: &ProxyState) {
             upstream_ip,
             request::format_request_line(&request)
         );
+
+        // check if client IP has reached the rate limit
+        if state.max_requests_per_minute > 0 && !update_rate_and_check(state, &client_ip).await {
+            let response = response::make_http_error(http::StatusCode::TOO_MANY_REQUESTS);
+            send_response(&mut client_conn, &response).await;
+            log::debug!("Too many response from client {}", client_ip);
+            continue;
+        }
 
         // Add X-Forwarded-For header so that the upstream server knows the client's IP address.
         // (We're the ones connecting directly to the upstream server, so without this header, the
